@@ -1,0 +1,5 @@
+networkx==2.3
+attrs==19.1.0
+paho-mqtt
+rhasspy-nlu
+rhasspy-hermes
