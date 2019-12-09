@@ -97,10 +97,8 @@ def poll_graph(seconds: float, graph_path: str, hermes: NluHermesMqtt):
                 # Reload graph
                 _LOGGER.debug("Re-loading graph from %s", graph_path)
                 with open(graph_path, "r") as graph_file:
-                    graph = json_to_graph(json.load(graph_file))
-
                     # Set in Hermes object
-                    hermes.graph = graph
+                    hermes.graph = json_to_graph(json.load(graph_file))
 
                 last_timestamp = timestamp
         except Exception:

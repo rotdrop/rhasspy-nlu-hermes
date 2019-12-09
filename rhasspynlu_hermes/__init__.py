@@ -82,7 +82,7 @@ class NluHermesMqtt:
     def on_connect(self, client, userdata, flags, rc):
         """Connected to MQTT broker."""
         try:
-            topics = [NluQuery.TOPIC]
+            topics = [NluQuery.topic()]
             for topic in topics:
                 self.client.subscribe(topic)
                 _LOGGER.debug("Subscribed to %s", topic)
@@ -93,7 +93,7 @@ class NluHermesMqtt:
         """Received message from MQTT broker."""
         try:
             _LOGGER.debug("Received %s byte(s) on %s", len(msg.payload), msg.topic)
-            if msg.topic == NluQuery.TOPIC:
+            if msg.topic == NluQuery.topic():
                 json_payload = json.loads(msg.payload)
 
                 # Check siteId
