@@ -1,4 +1,4 @@
-"""MQTT Rhasspy"""
+"""Hermes MQTT server for Rhasspy NLU"""
 import json
 import logging
 import typing
@@ -16,6 +16,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class NluHermesMqtt:
+    """Hermes MQTT server for Rhasspy NLU."""
+
     def __init__(
         self,
         client,
@@ -31,6 +33,7 @@ class NluHermesMqtt:
     # -------------------------------------------------------------------------
 
     def handle_query(self, query: NluQuery):
+        """Do intent recognition."""
         recognitions = recognize(query.input, self.graph)
         if recognitions:
             # Recognized
@@ -43,6 +46,7 @@ class NluHermesMqtt:
                 NluIntent(
                     input=query.input,
                     id=query.id,
+                    siteId=query.siteId,
                     sessionId=query.sessionId,
                     intent=Intent(
                         intentName=recognition.intent.name,
@@ -66,13 +70,17 @@ class NluHermesMqtt:
             # Not recognized
             self.publish(
                 NluIntentNotRecognized(
-                    input=query.input, id=query.id, sessionId=query.sessionId
+                    input=query.input,
+                    id=query.id,
+                    siteId=query.siteId,
+                    sessionId=query.sessionId,
                 )
             )
 
     # -------------------------------------------------------------------------
 
     def on_connect(self, client, userdata, flags, rc):
+        """Connected to MQTT broker."""
         try:
             topics = [NluQuery.TOPIC]
             for topic in topics:
@@ -82,6 +90,7 @@ class NluHermesMqtt:
             _LOGGER.exception("on_connect")
 
     def on_message(self, client, userdata, msg):
+        """Received message from MQTT broker."""
         try:
             _LOGGER.debug("Received %s byte(s) on %s", len(msg.payload), msg.topic)
             if msg.topic == NluQuery.TOPIC:
@@ -105,6 +114,7 @@ class NluHermesMqtt:
                     _LOGGER.exception("nlu query")
                     self.publish(
                         NluError(
+                            siteId=payload_siteId,
                             sessionId=json_payload.get("sessionId", ""),
                             error=str(e),
                             context="",
@@ -114,6 +124,7 @@ class NluHermesMqtt:
             _LOGGER.exception("on_message")
 
     def publish(self, message: Message, **topic_args):
+        """Publish a Hermes message to MQTT."""
         try:
             _LOGGER.debug("-> %s", message)
             topic = message.topic(**topic_args)
