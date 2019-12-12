@@ -5,12 +5,11 @@ import typing
 
 import attr
 import networkx as nx
-
 from rhasspyhermes.base import Message
-from rhasspyhermes.nlu import NluQuery, NluIntent, NluIntentNotRecognized, NluError
 from rhasspyhermes.intent import Intent, Slot, SlotRange
-
-from rhasspynlu import recognize, Sentence
+from rhasspyhermes.nlu import (NluError, NluIntent, NluIntentNotRecognized,
+                               NluQuery)
+from rhasspynlu import Sentence, recognize
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,10 +35,7 @@ class NluHermesMqtt:
         """Do intent recognition."""
         recognitions = recognize(query.input, self.graph)
         if recognitions:
-            # Recognized
-
             # Use first recognition only.
-            # TODO: Add alternatives.
             recognition = recognitions[0]
 
             self.publish(

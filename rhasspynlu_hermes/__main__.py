@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-import json
+"""Hermes MQTT service for rhasspynlu"""
 import argparse
+import json
 import logging
+import os
 import threading
 import time
 
@@ -14,6 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def main():
+    """Main method."""
     parser = argparse.ArgumentParser(prog="rhasspynlu_hermes")
     parser.add_argument(
         "--graph", required=True, help="Path to rhasspy graph JSON file"
@@ -36,7 +39,7 @@ def main():
     parser.add_argument(
         "--debug", action="store_true", help="Print DEBUG messages to the console"
     )
-    args, other_args = parser.parse_known_args()
+    args = parser.parse_args()
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -66,11 +69,12 @@ def main():
                 # Automatically reconnect
                 _LOGGER.info("Disconnected. Trying to reconnect...")
                 client.reconnect()
-            except Exception as e:
+            except Exception:
                 logging.exception("on_disconnect")
 
         # Connect
         client.on_connect = hermes.on_connect
+        client.on_disconnect = on_disconnect
         client.on_message = hermes.on_message
 
         _LOGGER.debug("Connecting to %s:%s", args.host, args.port)
@@ -87,6 +91,7 @@ def main():
 
 
 def poll_graph(seconds: float, graph_path: str, hermes: NluHermesMqtt):
+    """Watch graph file for changes and reload."""
     last_timestamp: int = 0
 
     while True:
