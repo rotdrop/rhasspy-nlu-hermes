@@ -1,2 +1,6 @@
 __pycache__/
 .venv/
+debian/rhasspy-nlu-hermes*
+dist/
+*.egg-info/
+pyinstaller/

@@ -6,6 +6,7 @@ import logging
 import os
 import threading
 import time
+import typing
 
 import paho.mqtt.client as mqtt
 from rhasspynlu import json_to_graph
@@ -92,13 +93,15 @@ def main():
 
 def poll_graph(seconds: float, graph_path: str, hermes: NluHermesMqtt):
     """Watch graph file for changes and reload."""
-    last_timestamp: int = 0
+    last_timestamp: typing.Optional[int] = None
 
     while True:
         time.sleep(seconds)
         try:
             timestamp = os.stat(graph_path).st_mtime_ns
-            if timestamp != last_timestamp:
+            if last_timestamp is None:
+                last_timestamp = timestamp
+            elif timestamp != last_timestamp:
                 # Reload graph
                 _LOGGER.debug("Re-loading graph from %s", graph_path)
                 with open(graph_path, "r") as graph_file:

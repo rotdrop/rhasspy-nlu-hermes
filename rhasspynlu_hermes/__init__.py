@@ -7,8 +7,7 @@ import attr
 import networkx as nx
 from rhasspyhermes.base import Message
 from rhasspyhermes.intent import Intent, Slot, SlotRange
-from rhasspyhermes.nlu import (NluError, NluIntent, NluIntentNotRecognized,
-                               NluQuery)
+from rhasspyhermes.nlu import NluError, NluIntent, NluIntentNotRecognized, NluQuery
 from rhasspynlu import Sentence, recognize
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +45,7 @@ class NluHermesMqtt:
                     sessionId=query.sessionId,
                     intent=Intent(
                         intentName=recognition.intent.name,
-                        confidenceScore=recognition.confidence,
+                        confidenceScore=recognition.intent.confidence,
                     ),
                     slots=[
                         Slot(
@@ -57,7 +56,7 @@ class NluHermesMqtt:
                             raw_value=e.raw_value,
                             range=SlotRange(start=e.raw_start, end=e.raw_end),
                         )
-                        for e in recognition.intent.entities
+                        for e in recognition.entities
                     ],
                 ),
                 intent_name=recognition.intent.name,

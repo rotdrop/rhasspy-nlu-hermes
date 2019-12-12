@@ -6,4 +6,4 @@ rhasspy-hermes==0.1.0
 
 flake8
 pylint
-
+pyinstaller
