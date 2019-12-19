@@ -40,3 +40,6 @@ debian: pyinstaller
 	cp -R pyinstaller/dist/rhasspynlu_hermes "$(debian_dir)/usr/lib/"
 	cd debian/ && fakeroot dpkg --build "$(debian_package)"
 	mv "debian/$(debian_package).deb" dist/
+
+docker: pyinstaller
+	docker build . -t "rhasspy/rhasspy-nlu-hermes:$(version)"
