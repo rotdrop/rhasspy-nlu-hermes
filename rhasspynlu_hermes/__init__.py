@@ -32,7 +32,14 @@ class NluHermesMqtt:
 
     def handle_query(self, query: NluQuery):
         """Do intent recognition."""
-        recognitions = recognize(query.input, self.graph)
+
+        def intent_filter(intent_name: str) -> bool:
+            """Filter out intents."""
+            if query.intentFilter:
+                return intent_name in query.intentFilter
+            return True
+
+        recognitions = recognize(query.input, self.graph, intent_filter=intent_filter)
         if recognitions:
             # Use first recognition only.
             recognition = recognitions[0]
