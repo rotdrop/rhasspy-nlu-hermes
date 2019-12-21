@@ -9,8 +9,8 @@ debian_package := rhasspy-nlu-hermes_$(version)_$(architecture)
 debian_dir := debian/$(debian_package)
 
 check:
-	flake8 rhasspynlu_hermes/*.py rhasspynlu_hermes/test/*.py
-	pylint rhasspynlu_hermes/*.py rhasspynlu_hermes/test/*.py
+	flake8 rhasspynlu_hermes/*.py test/*.py
+	pylint rhasspynlu_hermes/*.py test/*.py
 
 venv:
 	rm -rf .venv/
@@ -19,7 +19,7 @@ venv:
 	.venv/bin/pip3 install -r requirements_all.txt
 
 test:
-	coverage run -m unittest rhasspynlu_hermes.test
+	coverage run -m unittest test
 
 coverage:
 	coverage report -m
