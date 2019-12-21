@@ -25,7 +25,7 @@ class RhasspyNluHermesTestCase(unittest.TestCase):
 
         self.graph = intents_to_graph(parse_ini(ini_text))
         self.client = MagicMock()
-        self.hermes = NluHermesMqtt(self.client, self.graph, siteId=self.siteId)
+        self.hermes = NluHermesMqtt(self.client, self.graph, siteIds=[self.siteId])
 
     def test_subscribe(self):
         """Verify topic subscriptions."""

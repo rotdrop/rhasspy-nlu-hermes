@@ -21,12 +21,12 @@ class NluHermesMqtt:
         client,
         graph: nx.DiGraph,
         default_entities: typing.Dict[str, typing.Iterable[Sentence]] = None,
-        siteId: str = "default",
+        siteIds: typing.Optional[typing.List[str]] = None,
     ):
         self.client = client
         self.graph = graph
         self.default_entities = default_entities or {}
-        self.siteId = siteId
+        self.siteIds = siteIds or []
 
     # -------------------------------------------------------------------------
 
@@ -99,13 +99,7 @@ class NluHermesMqtt:
                 json_payload = json.loads(msg.payload)
 
                 # Check siteId
-                payload_siteId = json_payload.get("siteId", "default")
-                if payload_siteId != self.siteId:
-                    _LOGGER.debug(
-                        "Discarding query for site %s (not %s)",
-                        payload_siteId,
-                        self.siteId,
-                    )
+                if not self._check_siteId(json_payload):
                     return
 
                 try:
@@ -135,3 +129,12 @@ class NluHermesMqtt:
             self.client.publish(topic, payload)
         except Exception:
             _LOGGER.exception("on_message")
+
+    # -------------------------------------------------------------------------
+
+    def _check_siteId(self, json_payload: typing.Dict[str, typing.Any]) -> bool:
+        if self.siteIds:
+            return json_payload.get("siteId", "default") in self.siteIds
+
+        # All sites
+        return True
