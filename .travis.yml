@@ -7,7 +7,7 @@ python:
   - 3.7
 
 install:
-  - pip install -r requirments_all.txt
+  - pip install -r requirements_all.txt
 
 script:
   - make check
