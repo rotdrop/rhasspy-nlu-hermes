@@ -43,3 +43,7 @@ debian: pyinstaller
 
 docker: pyinstaller
 	docker build . -t "rhasspy/rhasspy-nlu-hermes:$(version)"
+
+deploy:
+	echo "$$DOCKER_PASSWORD" | docker login -u "$$DOCKER_USERNAME" --password-stdin
+	docker push rhasspy/rhasspy-nlu-hermes:$(version)
