@@ -21,6 +21,9 @@ venv:
 test:
 	coverage run -m unittest rhasspynlu_hermes.test
 
+coverage:
+	coverage report -m
+
 dist: sdist debian
 
 sdist:
