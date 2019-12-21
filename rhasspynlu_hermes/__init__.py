@@ -110,7 +110,7 @@ class NluHermesMqtt:
                     _LOGGER.exception("nlu query")
                     self.publish(
                         NluError(
-                            siteId=payload_siteId,
+                            siteId=query.siteId,
                             sessionId=json_payload.get("sessionId", ""),
                             error=str(e),
                             context="",
