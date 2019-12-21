@@ -19,7 +19,7 @@ venv:
 	.venv/bin/pip3 install -r requirements_all.txt
 
 test:
-	python3 -m unittest rhasspynlu_hermes.test
+	coverage run -m unittest rhasspynlu_hermes.test
 
 dist: sdist debian
 
