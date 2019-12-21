@@ -1,6 +1,6 @@
 SHELL := bash
 
-.PHONY: check dist venv test pyinstaller debian
+.PHONY: check dist venv test pyinstaller debian deploy
 
 version := $(shell cat VERSION)
 architecture := $(shell dpkg-architecture | grep DEB_BUILD_ARCH= | sed 's/[^=]\+=//')
