@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Hermes MQTT service for rhasspynlu"""
 import argparse
 import json
@@ -35,7 +34,9 @@ def main():
         "--port", type=int, default=1883, help="MQTT port (default: 1883)"
     )
     parser.add_argument(
-        "--siteId", default="default", help="Hermes siteId of this server"
+        "--siteId",
+        action="append",
+        help="Hermes siteId(s) to listen for (default: all)",
     )
     parser.add_argument(
         "--debug", action="store_true", help="Print DEBUG messages to the console"
@@ -57,7 +58,7 @@ def main():
 
         # Listen for messages
         client = mqtt.Client()
-        hermes = NluHermesMqtt(client, graph, siteId=args.siteId)
+        hermes = NluHermesMqtt(client, graph, siteIds=args.siteId)
 
         if args.reload:
             # Start polling thread

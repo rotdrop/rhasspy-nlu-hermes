@@ -1,6 +1,6 @@
 SHELL := bash
 
-.PHONY: check dist venv test pyinstaller debian
+.PHONY: check dist venv test pyinstaller debian deploy
 
 version := $(shell cat VERSION)
 architecture := $(shell dpkg-architecture | grep DEB_BUILD_ARCH= | sed 's/[^=]\+=//')
@@ -20,7 +20,10 @@ venv:
 	.venv/bin/pip3 install -r requirements_all.txt
 
 test:
-	python3 -m unittest rhasspynlu_hermes.test
+	coverage run -m unittest test
+
+coverage:
+	coverage report -m
 
 dist: sdist debian
 
@@ -41,3 +44,10 @@ debian: pyinstaller
 	cp -R pyinstaller/dist/rhasspynlu_hermes "$(debian_dir)/usr/lib/"
 	cd debian/ && fakeroot dpkg --build "$(debian_package)"
 	mv "debian/$(debian_package).deb" dist/
+
+docker: pyinstaller
+	docker build . -t "rhasspy/rhasspy-nlu-hermes:$(version)"
+
+deploy:
+	echo "$$DOCKER_PASSWORD" | docker login -u "$$DOCKER_USERNAME" --password-stdin
+	docker push rhasspy/rhasspy-nlu-hermes:$(version)
