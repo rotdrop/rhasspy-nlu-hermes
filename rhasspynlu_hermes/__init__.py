@@ -36,6 +36,8 @@ class NluHermesMqtt:
         if recognitions:
             # Use first recognition only.
             recognition = recognitions[0]
+            assert recognition is not None
+            assert recognition.intent is not None
 
             self.publish(
                 NluIntent(
@@ -59,7 +61,7 @@ class NluHermesMqtt:
                         for e in recognition.entities
                     ],
                 ),
-                intent_name=recognition.intent.name,
+                intentName=recognition.intent.name,
             )
         else:
             # Not recognized

@@ -11,6 +11,7 @@ debian_dir := debian/$(debian_package)
 check:
 	flake8 rhasspynlu_hermes/*.py rhasspynlu_hermes/test/*.py
 	pylint rhasspynlu_hermes/*.py rhasspynlu_hermes/test/*.py
+	mypy rhasspynlu_hermes/*.py rhasspynlu_hermes/test/*.py
 
 venv:
 	rm -rf .venv/
