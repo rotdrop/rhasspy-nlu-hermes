@@ -103,7 +103,7 @@ class RhasspyNluHermesTestCase(unittest.TestCase):
             NluIntent(
                 input=text,
                 id=query_id,
-                intent=Intent(intentName="SetLightColor", confidenceScore=1),
+                intent=Intent(intentName="SetLightColor", confidenceScore=1.0),
                 slots=[
                     Slot(
                         entity="name",
@@ -125,7 +125,7 @@ class RhasspyNluHermesTestCase(unittest.TestCase):
                 siteId=self.siteId,
                 sessionId=self.sessionId,
             ),
-            intent_name="SetLightColor",
+            intentName="SetLightColor",
         )
 
     def test_not_recognized(self):
