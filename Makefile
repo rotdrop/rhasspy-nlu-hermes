@@ -1,6 +1,9 @@
 SHELL := bash
+SOURCE = rhasspynlu_hermes
+PYTHON_FILES = $(SOURCE)/*.py tests/*.py *.py
+SHELL_FILES = bin/* debian/bin/*
 
-.PHONY: check dist venv test pyinstaller debian deploy
+.PHONY: reformat check dist venv test pyinstaller debian deploy
 
 version := $(shell cat VERSION)
 architecture := $(shell dpkg-architecture | grep DEB_BUILD_ARCH= | sed 's/[^=]\+=//')
@@ -8,20 +11,32 @@ architecture := $(shell dpkg-architecture | grep DEB_BUILD_ARCH= | sed 's/[^=]\+
 debian_package := rhasspy-nlu-hermes_$(version)_$(architecture)
 debian_dir := debian/$(debian_package)
 
+reformat:
+	black .
+	isort $(PYTHON_FILES)
+
 check:
-	flake8 rhasspynlu_hermes/*.py rhasspynlu_hermes/test/*.py
-	pylint rhasspynlu_hermes/*.py rhasspynlu_hermes/test/*.py
-	mypy rhasspynlu_hermes/*.py rhasspynlu_hermes/test/*.py
+	flake8 $(PYTHON_FILES)
+	pylint $(PYTHON_FILES)
+	mypy $(PYTHON_FILES)
+	black --check .
+	isort --check-only $(PYTHON_FILES)
+	bashate $(SHELL_FILES)
+	yamllint .
+	pip list --outdated
 
 venv:
 	rm -rf .venv/
 	python3 -m venv .venv
+	.venv/bin/pip3 install --upgrade pip
 	.venv/bin/pip3 install wheel setuptools
 	.venv/bin/pip3 install -r requirements.txt
 	.venv/bin/pip3 install -r requirements_dev.txt
 
 test:
-	coverage run -m unittest test
+	coverage run --source=$(SOURCE) -m unittest discover tests
+	coverage report -m
+	coverage xml
 
 coverage:
 	coverage report -m
