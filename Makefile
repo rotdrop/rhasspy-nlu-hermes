@@ -52,6 +52,21 @@ dist: sdist debian
 sdist:
 	python3 setup.py sdist
 
+# -----------------------------------------------------------------------------
+# Docker
+# -----------------------------------------------------------------------------
+
+docker: pyinstaller
+	docker build . -t "rhasspy/$(PACKAGE_NAME):$(version)"
+
+deploy:
+	echo "$$DOCKER_PASSWORD" | docker login -u "$$DOCKER_USERNAME" --password-stdin
+	docker push rhasspy/$(PACKAGE_NAME):$(version)
+
+# -----------------------------------------------------------------------------
+# Debian
+# -----------------------------------------------------------------------------
+
 pyinstaller:
 	mkdir -p dist
 	pyinstaller -y --workpath pyinstaller/build --distpath pyinstaller/dist $(PYTHON_NAME).spec
@@ -66,10 +81,3 @@ debian: pyinstaller
 	cp -R pyinstaller/dist/$(PYTHON_NAME) "$(debian_dir)/usr/lib/"
 	cd debian/ && fakeroot dpkg --build "$(debian_package)"
 	mv "debian/$(debian_package).deb" dist/
-
-docker: pyinstaller
-	docker build . -t "rhasspy/$(PACKAGE_NAME):$(version)"
-
-deploy:
-	echo "$$DOCKER_PASSWORD" | docker login -u "$$DOCKER_USERNAME" --password-stdin
-	docker push rhasspy/$(PACKAGE_NAME):$(version)
