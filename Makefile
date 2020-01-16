@@ -1,15 +1,21 @@
 SHELL := bash
-SOURCE = rhasspynlu_hermes
+PYTHON_NAME = rhasspynlu_hermes
+PACKAGE_NAME = rhasspy-nlu-hermes
+SOURCE = $(PYTHON_NAME)
 PYTHON_FILES = $(SOURCE)/*.py tests/*.py *.py
 SHELL_FILES = bin/* debian/bin/*
 
 .PHONY: reformat check dist venv test pyinstaller debian deploy
 
 version := $(shell cat VERSION)
-architecture := $(shell dpkg-architecture | grep DEB_BUILD_ARCH= | sed 's/[^=]\+=//')
+architecture := $(shell bash architecture.sh)
 
-debian_package := rhasspy-nlu-hermes_$(version)_$(architecture)
+debian_package := $(PACKAGE_NAME)_$(version)_$(architecture)
 debian_dir := debian/$(debian_package)
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
 
 reformat:
 	black .
@@ -48,8 +54,8 @@ sdist:
 
 pyinstaller:
 	mkdir -p dist
-	pyinstaller -y --workpath pyinstaller/build --distpath pyinstaller/dist rhasspynlu_hermes.spec
-	tar -C pyinstaller/dist -czf dist/rhasspy-nlu-hermes_$(version)_$(architecture).tar.gz rhasspynlu_hermes/
+	pyinstaller -y --workpath pyinstaller/build --distpath pyinstaller/dist $(PYTHON_NAME).spec
+	tar -C pyinstaller/dist -czf dist/$(PACKAGE_NAME)_$(version)_$(architecture).tar.gz $(SOURCE)/
 
 debian: pyinstaller
 	mkdir -p dist
@@ -57,13 +63,13 @@ debian: pyinstaller
 	mkdir -p "$(debian_dir)/DEBIAN" "$(debian_dir)/usr/bin" "$(debian_dir)/usr/lib"
 	cat debian/DEBIAN/control | version=$(version) architecture=$(architecture) envsubst > "$(debian_dir)/DEBIAN/control"
 	cp debian/bin/* "$(debian_dir)/usr/bin/"
-	cp -R pyinstaller/dist/rhasspynlu_hermes "$(debian_dir)/usr/lib/"
+	cp -R pyinstaller/dist/$(PYTHON_NAME) "$(debian_dir)/usr/lib/"
 	cd debian/ && fakeroot dpkg --build "$(debian_package)"
 	mv "debian/$(debian_package).deb" dist/
 
 docker: pyinstaller
-	docker build . -t "rhasspy/rhasspy-nlu-hermes:$(version)"
+	docker build . -t "rhasspy/$(PACKAGE_NAME):$(version)"
 
 deploy:
 	echo "$$DOCKER_PASSWORD" | docker login -u "$$DOCKER_USERNAME" --password-stdin
-	docker push rhasspy/rhasspy-nlu-hermes:$(version)
+	docker push rhasspy/$(PACKAGE_NAME):$(version)

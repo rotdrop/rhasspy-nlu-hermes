@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def main():
     """Main method."""
-    parser = argparse.ArgumentParser(prog="rhasspynlu_hermes")
+    parser = argparse.ArgumentParser(prog="rhasspy-nlu-hermes")
     parser.add_argument(
         "--graph", required=True, help="Path to rhasspy graph JSON file"
     )
