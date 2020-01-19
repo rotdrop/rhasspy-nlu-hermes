@@ -1,16 +1,18 @@
 """Hermes MQTT service for rhasspynlu"""
 import argparse
-import json
+import io
 import logging
 import os
 import threading
 import time
 import typing
+from pathlib import Path
+from uuid import uuid4
 
 import paho.mqtt.client as mqtt
-from rhasspynlu import json_to_graph
 
 from . import NluHermesMqtt
+from .messages import NluTrain
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,10 +24,15 @@ def main():
         "--graph", required=True, help="Path to rhasspy graph JSON file"
     )
     parser.add_argument(
-        "--reload",
+        "--sentences",
+        action="append",
+        help="Watch sentences.ini file(s) for changes and re-train",
+    )
+    parser.add_argument(
+        "--watch-delay",
         type=float,
-        default=None,
-        help="Poll graph JSON file for given number of seconds and automatically reload when changed",
+        default=1.0,
+        help="Seconds between polling sentence file(s) for training",
     )
     parser.add_argument(
         "--host", default="localhost", help="MQTT host (default: localhost)"
@@ -51,19 +58,24 @@ def main():
     _LOGGER.debug(args)
 
     try:
-        # Load graph
-        _LOGGER.debug("Loading graph from %s", args.graph)
-        with open(args.graph, "r") as graph_file:
-            graph = json_to_graph(json.load(graph_file))
+        # Convert to Paths
+        if args.sentences:
+            args.sentences = [Path(p) for p in args.sentences]
+
+        args.graph = Path(args.graph)
 
         # Listen for messages
         client = mqtt.Client()
-        hermes = NluHermesMqtt(client, graph, siteIds=args.siteId)
+        hermes = NluHermesMqtt(
+            client, graph_path=args.graph, sentences=args.sentences, siteIds=args.siteId
+        )
 
-        if args.reload:
+        if args.sentences and (args.watch_delay > 0):
             # Start polling thread
             threading.Thread(
-                target=poll_graph, args=(args.reload, args.graph, hermes), daemon=True
+                target=poll_sentences,
+                args=(args.sentences, args.watch_delay, args.graph, hermes),
+                daemon=True,
             ).start()
 
         def on_disconnect(client, userdata, flags, rc):
@@ -92,26 +104,40 @@ def main():
 # -----------------------------------------------------------------------------
 
 
-def poll_graph(seconds: float, graph_path: str, hermes: NluHermesMqtt):
-    """Watch graph file for changes and reload."""
-    last_timestamp: typing.Optional[int] = None
+def poll_sentences(
+    sentences_paths: typing.List[Path],
+    delay_seconds: float,
+    graph_path: Path,
+    hermes: NluHermesMqtt,
+):
+    """Watch sentences for changes and retrain."""
+    last_timestamps: typing.Dict[Path, int] = {}
 
     while True:
-        time.sleep(seconds)
+        time.sleep(delay_seconds)
         try:
-            timestamp = os.stat(graph_path).st_mtime_ns
-            if last_timestamp is None:
-                last_timestamp = timestamp
-            elif timestamp != last_timestamp:
-                # Reload graph
-                _LOGGER.debug("Re-loading graph from %s", graph_path)
-                with open(graph_path, "r") as graph_file:
-                    # Set in Hermes object
-                    hermes.graph = json_to_graph(json.load(graph_file))
+            retrain = False
+            for sentences_path in sentences_paths:
+                timestamp = os.stat(sentences_path).st_mtime_ns
+                last_timestamp = last_timestamps.get(sentences_path)
+                if (last_timestamp is not None) and (timestamp != last_timestamp):
+                    retrain = True
 
-                last_timestamp = timestamp
+                last_timestamps[sentences_path] = timestamp
+
+            if retrain:
+                _LOGGER.debug("Re-training")
+                with io.StringIO() as sentences_file:
+                    for sentences_path in sentences_paths:
+                        sentences_file.write(sentences_path.read_text())
+                        print("", file=sentences_file)
+
+                    result = hermes.train(
+                        NluTrain(id=str(uuid4()), sentences=sentences_file.getvalue())
+                    )
+                    hermes.publish(result)
         except Exception:
-            _LOGGER.exception("poll_graph")
+            _LOGGER.exception("poll_sentences")
 
 
 # -----------------------------------------------------------------------------
