@@ -24,8 +24,8 @@ class NluHermesMqtt:
     def __init__(
         self,
         client,
-        graph_path: Path,
         graph: typing.Optional[nx.DiGraph] = None,
+        graph_path: typing.Optional[Path] = None,
         sentences: typing.Optional[typing.List[Path]] = None,
         default_entities: typing.Dict[str, typing.Iterable[Sentence]] = None,
         siteIds: typing.Optional[typing.List[str]] = None,
@@ -37,11 +37,13 @@ class NluHermesMqtt:
         self.default_entities = default_entities or {}
         self.siteIds = siteIds or []
 
+        assert self.graph or self.graph_path, "Either graph or graph_path is required"
+
     # -------------------------------------------------------------------------
 
     def handle_query(self, query: NluQuery):
         """Do intent recognition."""
-        if not self.graph and self.graph_path.is_file():
+        if not self.graph and self.graph_path and self.graph_path.is_file():
             # Load graph from file
             with open(self.graph_path, "r") as graph_file:
                 self.graph = rhasspynlu.json_to_graph(json.load(graph_file))
@@ -116,13 +118,15 @@ class NluHermesMqtt:
                 intents = rhasspynlu.parse_ini(ini_file)
                 self.graph = rhasspynlu.intents_to_graph(intents)
 
-                # Write graph as JSON
-                with open(self.graph_path, "w") as graph_file:
-                    graph_dict = rhasspynlu.graph_to_json(self.graph)
-                    json.dump(graph_dict, graph_file)
+                if self.graph_path:
+                    # Write graph as JSON
+                    with open(self.graph_path, "w") as graph_file:
+                        graph_dict = rhasspynlu.graph_to_json(self.graph)
+                        json.dump(graph_dict, graph_file)
 
-                    _LOGGER.debug("Wrote %s", str(self.graph_path))
-                    return NluTrainSuccess(id=train.id, graph_dict=graph_dict)
+                        _LOGGER.debug("Wrote %s", str(self.graph_path))
+
+                return NluTrainSuccess(id=train.id, graph_dict=graph_dict)
         except Exception as e:
             return NluError(siteId=siteId, error=str(e), context=train.id)
 

@@ -31,8 +31,8 @@ class RhasspyNluHermesTestCase(unittest.TestCase):
         """Verify topic subscriptions."""
         self.hermes.on_connect(self.client, None, None, None)
 
-        for topic in ["hermes/nlu/query"]:
-            self.client.subscribe.assert_called_with(topic)
+        for topic in ["hermes/nlu/query", f"hermes/nlu/{self.siteId}/train"]:
+            self.client.subscribe.assert_any_call(topic)
 
     def test_handle_query(self):
         """Verify valid input leads to a query message."""
