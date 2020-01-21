@@ -6,14 +6,14 @@ import attr
 from rhasspyhermes.base import Message
 
 
-@attr.s
+@attr.s(auto_attribs=True)
 class NluTrain(Message):
     """Request to retrain from sentences"""
 
     TOPIC_PATTERN = re.compile(r"^hermes/nlu/([^/]+)/train$")
 
-    id: str = attr.ib()
-    sentences: str = attr.ib()
+    id: str
+    sentences: str
 
     @classmethod
     def topic(cls, **kwargs) -> str:
@@ -33,14 +33,14 @@ class NluTrain(Message):
         return match.group(1)
 
 
-@attr.s
+@attr.s(auto_attribs=True)
 class NluTrainSuccess(Message):
     """Result from successful training"""
 
     TOPIC_PATTERN = re.compile(r"^hermes/nlu/([^/]+)/trainSuccess$")
 
-    id: str = attr.ib()
-    graph_dict: typing.Dict[str, typing.Any] = attr.ib()
+    id: str
+    graph_dict: typing.Dict[str, typing.Any]
 
     @classmethod
     def topic(cls, **kwargs) -> str:
