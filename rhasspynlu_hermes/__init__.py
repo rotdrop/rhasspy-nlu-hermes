@@ -10,10 +10,15 @@ import networkx as nx
 import rhasspynlu
 from rhasspyhermes.base import Message
 from rhasspyhermes.intent import Intent, Slot, SlotRange
-from rhasspyhermes.nlu import NluError, NluIntent, NluIntentNotRecognized, NluQuery
+from rhasspyhermes.nlu import (
+    NluError,
+    NluIntent,
+    NluIntentNotRecognized,
+    NluQuery,
+    NluTrain,
+    NluTrainSuccess,
+)
 from rhasspynlu import Sentence, recognize
-
-from .messages import NluTrain, NluTrainSuccess
 
 _LOGGER = logging.getLogger(__name__)
 

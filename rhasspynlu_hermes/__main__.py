@@ -12,7 +12,7 @@ from uuid import uuid4
 import paho.mqtt.client as mqtt
 
 from . import NluHermesMqtt
-from .messages import NluTrain
+from rhasspyhermes.nlu import NluTrain
 
 _LOGGER = logging.getLogger(__name__)
 
