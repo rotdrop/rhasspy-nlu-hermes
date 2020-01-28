@@ -119,8 +119,12 @@ class NluHermesMqtt:
 
         try:
             # Parse sentences and convert to graph
-            with io.StringIO(train.sentences) as ini_file:
-                intents = rhasspynlu.parse_ini(ini_file)
+            with io.StringIO() as ini_file:
+                for _, sentences in train.sentences.values():
+                    print(sentences, file=ini_file)
+                    print("", file=ini_file)
+
+                intents = rhasspynlu.parse_ini(ini_file.getvalue())
                 self.graph = rhasspynlu.intents_to_graph(intents)
 
                 if self.graph_path:
@@ -131,7 +135,7 @@ class NluHermesMqtt:
 
                         _LOGGER.debug("Wrote %s", str(self.graph_path))
 
-                return NluTrainSuccess(id=train.id, graph_dict=graph_dict)
+                return NluTrainSuccess(id=train.id)
         except Exception as e:
             return NluError(siteId=siteId, error=str(e), context=train.id)
 

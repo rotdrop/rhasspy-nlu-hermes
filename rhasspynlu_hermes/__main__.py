@@ -10,9 +10,9 @@ from pathlib import Path
 from uuid import uuid4
 
 import paho.mqtt.client as mqtt
+from rhasspyhermes.nlu import NluTrain
 
 from . import NluHermesMqtt
-from rhasspyhermes.nlu import NluTrain
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -132,8 +132,9 @@ def poll_sentences(
                         sentences_file.write(sentences_path.read_text())
                         print("", file=sentences_file)
 
+                    sentences = {"<stdin>": sentences_file.getvalue()}
                     result = hermes.train(
-                        NluTrain(id=str(uuid4()), sentences=sentences_file.getvalue())
+                        NluTrain(id=str(uuid4()), sentences=sentences)
                     )
                     hermes.publish(result)
         except Exception:
