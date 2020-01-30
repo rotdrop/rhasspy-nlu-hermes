@@ -6,7 +6,7 @@ import attr
 from rhasspyhermes.base import Message
 
 
-@attr.s(auto_attribs=True)
+@attr.s(auto_attribs=True, slots=True)
 class NluTrain(Message):
     """Request to retrain from sentences"""
 
@@ -33,7 +33,7 @@ class NluTrain(Message):
         return match.group(1)
 
 
-@attr.s(auto_attribs=True)
+@attr.s(auto_attribs=True, slots=True)
 class NluTrainSuccess(Message):
     """Result from successful training"""
 
