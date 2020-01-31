@@ -16,7 +16,8 @@ class NluTrain(Message):
     sentences: str
 
     @classmethod
-    def topic(cls, siteId: str = "default", **kwargs) -> str:
+    def topic(cls, **kwargs) -> str:
+        siteId = kwargs.get("siteId", "default")
         return f"hermes/nlu/{siteId}/train"
 
     @classmethod
@@ -42,7 +43,8 @@ class NluTrainSuccess(Message):
     graph_dict: typing.Dict[str, typing.Any]
 
     @classmethod
-    def topic(cls, siteId: str = "default", **kwargs) -> str:
+    def topic(cls, **kwargs) -> str:
+        siteId = kwargs.get("siteId", "default")
         return f"hermes/nlu/{siteId}/trainSuccess"
 
     @classmethod
