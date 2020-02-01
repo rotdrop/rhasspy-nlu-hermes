@@ -20,20 +20,18 @@ _LOGGER = logging.getLogger(__name__)
 def main():
     """Main method."""
     parser = argparse.ArgumentParser(prog="rhasspy-nlu-hermes")
+    parser.add_argument("--intent-graph", help="Path to rhasspy intent graph JSON file")
     parser.add_argument(
-        "--graph", required=True, help="Path to rhasspy graph JSON file"
+        "--write-graph",
+        action="store_true",
+        help="Write training graph to intent-graph path",
     )
-    parser.add_argument(
-        "--sentences",
-        action="append",
-        help="Watch sentences.ini file(s) for changes and re-train",
-    )
-    parser.add_argument(
-        "--watch-delay",
-        type=float,
-        default=1.0,
-        help="Seconds between polling sentence file(s) for training",
-    )
+    # parser.add_argument(
+    #     "--watch-delay",
+    #     type=float,
+    #     default=1.0,
+    #     help="Seconds between polling sentence file(s) for training",
+    # )
     parser.add_argument(
         "--host", default="localhost", help="MQTT host (default: localhost)"
     )
@@ -59,24 +57,25 @@ def main():
 
     try:
         # Convert to Paths
-        if args.sentences:
-            args.sentences = [Path(p) for p in args.sentences]
-
-        args.graph = Path(args.graph)
+        if args.intent_graph:
+            args.intent_graph = Path(args.intent_graph)
 
         # Listen for messages
         client = mqtt.Client()
         hermes = NluHermesMqtt(
-            client, graph_path=args.graph, sentences=args.sentences, siteIds=args.siteId
+            client,
+            graph_path=args.intent_graph,
+            write_graph=args.write_graph,
+            siteIds=args.siteId,
         )
 
-        if args.sentences and (args.watch_delay > 0):
-            # Start polling thread
-            threading.Thread(
-                target=poll_sentences,
-                args=(args.sentences, args.watch_delay, args.graph, hermes),
-                daemon=True,
-            ).start()
+        # if args.sentences and (args.watch_delay > 0):
+        #     # Start polling thread
+        #     threading.Thread(
+        #         target=poll_sentences,
+        #         args=(args.sentences, args.watch_delay, args.graph, hermes),
+        #         daemon=True,
+        #     ).start()
 
         def on_disconnect(client, userdata, flags, rc):
             try:
@@ -104,41 +103,41 @@ def main():
 # -----------------------------------------------------------------------------
 
 
-def poll_sentences(
-    sentences_paths: typing.List[Path],
-    delay_seconds: float,
-    graph_path: Path,
-    hermes: NluHermesMqtt,
-):
-    """Watch sentences for changes and retrain."""
-    last_timestamps: typing.Dict[Path, int] = {}
+# def poll_sentences(
+#     sentences_paths: typing.List[Path],
+#     delay_seconds: float,
+#     graph_path: Path,
+#     hermes: NluHermesMqtt,
+# ):
+#     """Watch sentences for changes and retrain."""
+#     last_timestamps: typing.Dict[Path, int] = {}
 
-    while True:
-        time.sleep(delay_seconds)
-        try:
-            retrain = False
-            for sentences_path in sentences_paths:
-                timestamp = os.stat(sentences_path).st_mtime_ns
-                last_timestamp = last_timestamps.get(sentences_path)
-                if (last_timestamp is not None) and (timestamp != last_timestamp):
-                    retrain = True
+#     while True:
+#         time.sleep(delay_seconds)
+#         try:
+#             retrain = False
+#             for sentences_path in sentences_paths:
+#                 timestamp = os.stat(sentences_path).st_mtime_ns
+#                 last_timestamp = last_timestamps.get(sentences_path)
+#                 if (last_timestamp is not None) and (timestamp != last_timestamp):
+#                     retrain = True
 
-                last_timestamps[sentences_path] = timestamp
+#                 last_timestamps[sentences_path] = timestamp
 
-            if retrain:
-                _LOGGER.debug("Re-training")
-                with io.StringIO() as sentences_file:
-                    for sentences_path in sentences_paths:
-                        sentences_file.write(sentences_path.read_text())
-                        print("", file=sentences_file)
+#             if retrain:
+#                 _LOGGER.debug("Re-training")
+#                 with io.StringIO() as sentences_file:
+#                     for sentences_path in sentences_paths:
+#                         sentences_file.write(sentences_path.read_text())
+#                         print("", file=sentences_file)
 
-                    sentences = {"<stdin>": sentences_file.getvalue()}
-                    result = hermes.train(
-                        NluTrain(id=str(uuid4()), sentences=sentences)
-                    )
-                    hermes.publish(result)
-        except Exception:
-            _LOGGER.exception("poll_sentences")
+#                     sentences = {"<stdin>": sentences_file.getvalue()}
+#                     result = hermes.train(
+#                         NluTrain(id=str(uuid4()), sentences=sentences)
+#                     )
+#                     hermes.publish(result)
+#         except Exception:
+#             _LOGGER.exception("poll_sentences")
 
 
 # -----------------------------------------------------------------------------
