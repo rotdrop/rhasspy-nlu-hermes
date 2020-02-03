@@ -47,3 +47,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         id: bump_tag
+      - name: Set up Docker Buildx when new tag was added
+        if: steps.bump_tag.outputs.new_tag
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          version: latest
+      - name: Run Buildx and deploy containers when new tag was added
+        if: steps.bump_tag.outputs.new_tag
+        run: make docker-deploy

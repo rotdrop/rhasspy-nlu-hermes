@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+if [[ -z "${rhasspynlu_hermes_dir}" ]]; then
+    this_dir="$( cd "$( dirname "$0" )" && pwd )"
+    rhasspynlu_hermes_dir="${this_dir}/../lib/rhasspynlu_hermes"
+fi
+
+python3 "${rhasspynlu_hermes_dir}" "$@"
