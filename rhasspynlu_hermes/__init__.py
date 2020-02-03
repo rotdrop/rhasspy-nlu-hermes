@@ -1,5 +1,4 @@
 """Hermes MQTT server for Rhasspy NLU"""
-import io
 import json
 import logging
 import typing
