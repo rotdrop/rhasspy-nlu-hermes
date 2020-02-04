@@ -14,6 +14,14 @@ architecture := $(shell bash architecture.sh)
 debian_package := $(PACKAGE_NAME)_$(version)_$(architecture)
 debian_dir := debian/$(debian_package)
 
+ifneq (,$(findstring -dev,$(version)))
+	DOCKER_TAGS = -t "rhasspy/$(PACKAGE_NAME):$(version)" -t "rhasspy/$(PACKAGE_NAME):latest"
+else
+	DOCKER_TAGS = -t "rhasspy/$(PACKAGE_NAME):$(version)"
+endif
+
+DOCKER_PLATFORMS = linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
+
 # -----------------------------------------------------------------------------
 # Python
 # -----------------------------------------------------------------------------
@@ -57,12 +65,9 @@ sdist:
 # Docker
 # -----------------------------------------------------------------------------
 
-docker: pyinstaller
-	docker build . -t "rhasspy/$(PACKAGE_NAME):$(version)" -t "rhasspy/$(PACKAGE_NAME):latest"
-
-deploy:
-	echo "$$DOCKER_PASSWORD" | docker login -u "$$DOCKER_USERNAME" --password-stdin
-	docker push rhasspy/$(PACKAGE_NAME):$(version)
+docker-deploy:
+	echo "$$DOCKER_PASSWORD" | docker login -u rhasspy --password-stdin
+	docker buildx build . --platform $(DOCKER_PLATFORMS) --push $(DOCKER_TAGS)
 
 # -----------------------------------------------------------------------------
 # Debian

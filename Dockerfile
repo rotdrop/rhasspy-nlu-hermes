@@ -1,7 +1,18 @@
-ARG BUILD_ARCH=amd64
-FROM ${BUILD_ARCH}/debian:buster-slim
+FROM python:3.7-alpine
 
-COPY pyinstaller/dist/* /usr/lib/rhasspynlu_hermes/
-COPY debian/bin/* /usr/bin/
+RUN apk add --no-cache bash
+
+RUN pip3 install --upgrade pip
+
+COPY requirements.txt /tmp/
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+WORKDIR /usr
+USER appuser
+
+COPY **/*.py lib/rhasspynlu_hermes/
+
+COPY docker/rhasspy-nlu-hermes bin/
 
 ENTRYPOINT ["/usr/bin/rhasspy-nlu-hermes"]

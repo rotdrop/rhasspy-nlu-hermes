@@ -1,3 +1,6 @@
 *
-!pyinstaller/dist
-!debian/bin
+!__main__.py
+!requirements.txt
+!docker
+!rhasspynlu_hermes
+rhasspynlu_hermes/__pycache__
