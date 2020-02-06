@@ -45,7 +45,7 @@ sdist:
 # -----------------------------------------------------------------------------
 
 docker-deploy:
-	echo "$$DOCKER_PASSWORD" | docker login -u rhasspy --password-stdin
+	docker login --username rhasspy --password "$$DOCKER_PASSWORD"
 	docker buildx build . --platform $(DOCKER_PLATFORMS) --push $(DOCKER_TAGS)
 
 # -----------------------------------------------------------------------------
