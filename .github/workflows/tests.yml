@@ -52,3 +52,5 @@ jobs:
       - name: Run Buildx and deploy containers when new tag was added
         if: steps.bump_tag.outputs.new_tag
         run: make docker-deploy
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
