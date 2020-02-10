@@ -32,6 +32,7 @@ class NluHermesMqtt:
         graph_path: typing.Optional[Path] = None,
         write_graph: bool = False,
         default_entities: typing.Dict[str, typing.Iterable[Sentence]] = None,
+        word_transform: typing.Optional[typing.Callable[[str], str]] = None,
         siteIds: typing.Optional[typing.List[str]] = None,
     ):
         self.client = client
@@ -39,6 +40,7 @@ class NluHermesMqtt:
         self.intent_graph = intent_graph
         self.write_graph = write_graph
         self.default_entities = default_entities or {}
+        self.word_transform = word_transform
         self.siteIds = siteIds or []
 
     # -------------------------------------------------------------------------
@@ -58,8 +60,14 @@ class NluHermesMqtt:
                     return intent_name in query.intentFilter
                 return True
 
+            input_text = query.input
+
+            # Fix casing
+            if self.word_transform:
+                input_text = self.word_transform(input_text)
+
             recognitions = recognize(
-                query.input, self.intent_graph, intent_filter=intent_filter
+                input_text, self.intent_graph, intent_filter=intent_filter
             )
         else:
             _LOGGER.error("No intent graph loaded")

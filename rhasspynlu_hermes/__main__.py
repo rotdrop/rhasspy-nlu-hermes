@@ -1,6 +1,7 @@
 """Hermes MQTT service for rhasspynlu"""
 import argparse
 import logging
+import typing
 from pathlib import Path
 
 import paho.mqtt.client as mqtt
@@ -18,6 +19,12 @@ def main():
         "--write-graph",
         action="store_true",
         help="Write training graph to intent-graph path",
+    )
+    parser.add_argument(
+        "--casing",
+        choices=["upper", "lower", "ignore"],
+        default="ignore",
+        help="Case transformation for input text (default: ignore)",
     )
     parser.add_argument(
         "--host", default="localhost", help="MQTT host (default: localhost)"
@@ -53,6 +60,7 @@ def main():
             client,
             graph_path=args.intent_graph,
             write_graph=args.write_graph,
+            word_transform=get_word_transform(args.casing),
             siteIds=args.siteId,
         )
 
@@ -77,6 +85,20 @@ def main():
         pass
     finally:
         _LOGGER.debug("Shutting down")
+
+
+# -----------------------------------------------------------------------------
+
+
+def get_word_transform(name: str) -> typing.Callable[[str], str]:
+    """Gets a word transformation function by name."""
+    if name == "upper":
+        return str.upper
+
+    if name == "lower":
+        return str.lower
+
+    return lambda s: s
 
 
 # -----------------------------------------------------------------------------
