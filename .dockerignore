@@ -3,4 +3,6 @@
 !requirements.txt
 !docker
 !rhasspynlu_hermes
+!pyinstaller/dist
+!debian/bin
 rhasspynlu_hermes/__pycache__

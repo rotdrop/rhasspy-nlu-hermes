@@ -6,7 +6,7 @@ PYTHON_FILES = $(SOURCE)/*.py tests/*.py *.py
 SHELL_FILES = bin/* debian/bin/*
 PIP_INSTALL ?= install
 
-.PHONY: reformat check dist venv test pyinstaller debian deploy
+.PHONY: reformat check dist venv test pyinstaller debian docker-deploy docker-debian
 
 version := $(shell cat VERSION)
 architecture := $(shell bash architecture.sh)
@@ -43,6 +43,9 @@ sdist:
 # -----------------------------------------------------------------------------
 # Docker
 # -----------------------------------------------------------------------------
+
+docker-debian: pyinstaller
+	docker build -f Dockerfile.debian . -t "rhasspy/$(PACKAGE_NAME):$(version)" -t "rhasspy/$(PACKAGE_NAME):latest"
 
 docker-deploy:
 	docker login --username rhasspy --password "$$DOCKER_PASSWORD"
