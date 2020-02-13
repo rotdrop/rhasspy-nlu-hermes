@@ -12,9 +12,9 @@ version := $(shell cat VERSION)
 architecture := $(shell bash architecture.sh)
 
 ifneq (,$(findstring -dev,$(version)))
-	DOCKER_TAGS = -t "rhasspy/$(PACKAGE_NAME):$(version)" -t "rhasspy/$(PACKAGE_NAME):latest"
-else
 	DOCKER_TAGS = -t "rhasspy/$(PACKAGE_NAME):$(version)"
+else
+	DOCKER_TAGS = -t "rhasspy/$(PACKAGE_NAME):$(version)" -t "rhasspy/$(PACKAGE_NAME):latest"
 endif
 
 DOCKER_PLATFORMS = linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
