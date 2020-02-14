@@ -1,18 +1,25 @@
-FROM python:3.7-alpine
+ARG BUILD_ARCH=amd64
+FROM ${BUILD_ARCH}/python:3.7-alpine as build
 
-RUN apk add --no-cache bash
+RUN apk add --no-cache build-base swig
 
-RUN pip3 install --upgrade pip
+ENV VENV=/usr/.venv
 
-COPY requirements.txt /tmp/
-RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+RUN python3 -m venv $VENV
+RUN $VENV/bin/pip3 install --upgrade pip
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+COPY requirements_rhasspy.txt requirements.txt /tmp/
+RUN $VENV/bin/pip3 install -r /tmp/requirements_rhasspy.txt
+RUN $VENV/bin/pip3 install -r /tmp/requirements.txt
+
+# -----------------------------------------------------------------------------
+
+ARG BUILD_ARCH=amd64
+FROM ${BUILD_ARCH}/python:3.7-alpine
+
 WORKDIR /usr
-USER appuser
+COPY --from=build /usr/.venv /usr/.venv/
 
-COPY **/*.py lib/rhasspynlu_hermes/
+COPY **/*.py rhasspynlu_hermes/
 
-COPY docker/rhasspy-nlu-hermes bin/
-
-ENTRYPOINT ["/usr/bin/rhasspy-nlu-hermes"]
+ENTRYPOINT ["/usr/.venv/bin/python3", "-m", "rhasspynlu_hermes"]
