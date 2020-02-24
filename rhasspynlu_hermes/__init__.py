@@ -62,12 +62,16 @@ class NluHermesMqtt:
 
             input_text = query.input
 
-            # Fix casing
+            # Fix casing for outpu event
             if self.word_transform:
                 input_text = self.word_transform(input_text)
 
+            # Pass in raw query input so raw values will be correct
             recognitions = recognize(
-                input_text, self.intent_graph, intent_filter=intent_filter
+                query.input,
+                self.intent_graph,
+                intent_filter=intent_filter,
+                word_transform=self.word_transform,
             )
         else:
             _LOGGER.error("No intent graph loaded")
@@ -81,7 +85,7 @@ class NluHermesMqtt:
 
             self.publish(
                 NluIntent(
-                    input=query.input,
+                    input=input_text,
                     id=query.id,
                     siteId=query.siteId,
                     sessionId=query.sessionId,
@@ -100,6 +104,7 @@ class NluHermesMqtt:
                         )
                         for e in recognition.entities
                     ],
+                    asrTokens=query.input.split(),
                 ),
                 intentName=recognition.intent.name,
             )
