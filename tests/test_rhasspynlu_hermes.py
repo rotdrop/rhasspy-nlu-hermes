@@ -122,6 +122,7 @@ class RhasspyNluHermesTestCase(unittest.TestCase):
                         range=SlotRange(25, 28),
                     ),
                 ],
+                asrTokens=["set", "the", "bedroom", "light", "to", "red"],
                 siteId=self.siteId,
                 sessionId=self.sessionId,
             ),
