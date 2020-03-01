@@ -13,6 +13,7 @@ from rhasspyhermes.nlu import (
     NluError,
     NluIntent,
     NluIntentNotRecognized,
+    NluIntentParsed,
     NluQuery,
     NluTrain,
     NluTrainSuccess,
@@ -83,6 +84,32 @@ class NluHermesMqtt:
             assert recognition is not None
             assert recognition.intent is not None
 
+            # intentParsed
+            self.publish(
+                NluIntentParsed(
+                    input=input_text,
+                    id=query.id,
+                    siteId=query.siteId,
+                    sessionId=query.sessionId,
+                    intent=Intent(
+                        intentName=recognition.intent.name,
+                        confidenceScore=recognition.intent.confidence,
+                    ),
+                    slots=[
+                        Slot(
+                            entity=e.entity,
+                            slotName=e.entity,
+                            confidence=1,
+                            value=e.value,
+                            raw_value=e.raw_value,
+                            range=SlotRange(start=e.raw_start, end=e.raw_end),
+                        )
+                        for e in recognition.entities
+                    ],
+                )
+            )
+
+            # intent
             self.publish(
                 NluIntent(
                     input=input_text,
