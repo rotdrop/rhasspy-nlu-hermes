@@ -27,6 +27,17 @@ def main():
         help="Case transformation for input text (default: ignore)",
     )
     parser.add_argument(
+        "--no-fuzzy", action="store_true", help="Disable fuzzy matching in graph search"
+    )
+    parser.add_argument(
+        "--replace-numbers",
+        action="store_true",
+        help="Replace digits with words in queries (75 -> seventy five)",
+    )
+    parser.add_argument(
+        "--language", help="Language/locale used for number replacement (default: en)"
+    )
+    parser.add_argument(
         "--host", default="localhost", help="MQTT host (default: localhost)"
     )
     parser.add_argument(
@@ -61,6 +72,9 @@ def main():
             graph_path=args.intent_graph,
             write_graph=args.write_graph,
             word_transform=get_word_transform(args.casing),
+            replace_numbers=args.replace_numbers,
+            language=args.language,
+            fuzzy=(not args.no_fuzzy),
             siteIds=args.siteId,
         )
 
