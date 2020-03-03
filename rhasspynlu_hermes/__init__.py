@@ -22,6 +22,10 @@ from rhasspynlu import Sentence, recognize
 
 _LOGGER = logging.getLogger(__name__)
 
+# -----------------------------------------------------------------------------
+
+TopicArgs = typing.Mapping[str, typing.Any]
+
 
 class NluHermesMqtt:
     """Hermes MQTT server for Rhasspy NLU."""
@@ -176,7 +180,9 @@ class NluHermesMqtt:
 
     def handle_train(
         self, train: NluTrain, siteId: str = "default"
-    ) -> typing.Union[NluTrainSuccess, NluError]:
+    ) -> typing.Iterable[
+        typing.Union[typing.Tuple[NluTrainSuccess, TopicArgs], NluError]
+    ]:
         """Transform sentences to intent graph"""
         _LOGGER.debug("<- %s(%s)", train.__class__.__name__, train.id)
 
@@ -190,9 +196,9 @@ class NluHermesMqtt:
 
                     _LOGGER.debug("Wrote %s", str(self.graph_path))
 
-            return NluTrainSuccess(id=train.id)
+            yield (NluTrainSuccess(id=train.id), {"siteId": siteId})
         except Exception as e:
-            return NluError(siteId=siteId, error=str(e), context=train.id)
+            yield NluError(siteId=siteId, error=str(e), context=train.id)
 
     # -------------------------------------------------------------------------
 
@@ -228,7 +234,7 @@ class NluHermesMqtt:
                     return
 
                 try:
-                    query = NluQuery(**json_payload)
+                    query = NluQuery.from_dict(json_payload)
                     _LOGGER.debug("<- %s", query)
                     self.handle_query(query)
                 except Exception as e:
@@ -247,9 +253,8 @@ class NluHermesMqtt:
                     return
 
                 json_payload = json.loads(msg.payload)
-                train = NluTrain(**json_payload)
-                result = self.handle_train(train)
-                self.publish(result)
+                train = NluTrain.from_dict(json_payload)
+                self.publish_all(self.handle_train(train, siteId=siteId))
         except Exception:
             _LOGGER.exception("on_message")
 
@@ -263,6 +268,20 @@ class NluHermesMqtt:
             self.client.publish(topic, payload)
         except Exception:
             _LOGGER.exception("on_message")
+
+    def publish_all(
+        self,
+        messages: typing.Iterable[
+            typing.Union[Message, typing.Tuple[Message, TopicArgs]]
+        ],
+    ):
+        """Publish all messages."""
+        for maybe_message in messages:
+            if isinstance(maybe_message, Message):
+                self.publish(maybe_message)
+            else:
+                message, topic_args = maybe_message
+                self.publish(message, **topic_args)
 
     # -------------------------------------------------------------------------
 
