@@ -20,7 +20,7 @@ from rhasspyhermes.nlu import (
 )
 from rhasspynlu import Sentence, recognize
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger("rhasspynlu_hermes")
 
 # -----------------------------------------------------------------------------
 

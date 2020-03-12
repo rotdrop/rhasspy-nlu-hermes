@@ -8,7 +8,7 @@ import paho.mqtt.client as mqtt
 
 from . import NluHermesMqtt
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger("rhasspynlu_hermes")
 
 
 def main():
