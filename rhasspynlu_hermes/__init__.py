@@ -1,4 +1,5 @@
 """Hermes MQTT server for Rhasspy NLU"""
+import gzip
 import json
 import logging
 import typing
@@ -170,17 +171,12 @@ class NluHermesMqtt:
         typing.Union[typing.Tuple[NluTrainSuccess, TopicArgs], NluError]
     ]:
         """Transform sentences to intent graph"""
-        _LOGGER.debug("<- %s(%s)", train.__class__.__name__, train.id)
+        _LOGGER.debug("<- %s", train)
 
         try:
-            self.intent_graph = rhasspynlu.json_to_graph(train.graph_dict)
-
-            if self.graph_path:
-                # Write graph as JSON
-                with open(self.graph_path, "w") as graph_file:
-                    json.dump(train.graph_dict, graph_file)
-
-                    _LOGGER.debug("Wrote %s", str(self.graph_path))
+            _LOGGER.debug("Loading %s", train.graph_path)
+            with gzip.GzipFile(train.graph_path, mode="rb") as graph_gzip:
+                self.intent_graph = nx.readwrite.gpickle.read_gpickle(graph_gzip)
 
             yield (NluTrainSuccess(id=train.id), {"siteId": siteId})
         except Exception as e:
