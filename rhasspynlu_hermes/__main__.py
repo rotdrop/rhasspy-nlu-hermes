@@ -11,6 +11,8 @@ from . import NluHermesMqtt
 
 _LOGGER = logging.getLogger("rhasspynlu_hermes")
 
+# -----------------------------------------------------------------------------
+
 
 def main():
     """Main method."""
