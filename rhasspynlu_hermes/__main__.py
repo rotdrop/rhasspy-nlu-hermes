@@ -1,5 +1,6 @@
 """Hermes MQTT service for rhasspynlu"""
 import argparse
+import asyncio
 import logging
 import typing
 from pathlib import Path
@@ -66,6 +67,8 @@ def main():
     _LOGGER.debug(args)
 
     try:
+        loop = asyncio.get_event_loop()
+
         # Convert to Paths
         if args.intent_graph:
             args.intent_graph = Path(args.intent_graph)
@@ -81,25 +84,15 @@ def main():
             language=args.language,
             fuzzy=(not args.no_fuzzy),
             siteIds=args.siteId,
+            loop=loop,
         )
-
-        def on_disconnect(client, userdata, flags, rc):
-            try:
-                # Automatically reconnect
-                _LOGGER.info("Disconnected. Trying to reconnect...")
-                client.reconnect()
-            except Exception:
-                logging.exception("on_disconnect")
-
-        # Connect
-        client.on_connect = hermes.on_connect
-        client.on_disconnect = on_disconnect
-        client.on_message = hermes.on_message
 
         _LOGGER.debug("Connecting to %s:%s", args.host, args.port)
         client.connect(args.host, args.port)
+        client.loop_start()
 
-        client.loop_forever()
+        # Run event loop
+        hermes.loop.run_forever()
     except KeyboardInterrupt:
         pass
     finally:
