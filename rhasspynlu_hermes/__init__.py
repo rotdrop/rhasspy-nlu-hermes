@@ -76,8 +76,9 @@ class NluHermesMqtt(HermesClient):
         try:
             if not self.intent_graph and self.graph_path and self.graph_path.is_file():
                 # Load graph from file
-                with open(self.graph_path, "r") as graph_file:
-                    self.intent_graph = rhasspynlu.json_to_graph(json.load(graph_file))
+                _LOGGER.debug("Loading %s", self.graph_path)
+                with gzip.GzipFile(self.graph_path, mode="rb") as graph_gzip:
+                    self.intent_graph = nx.readwrite.gpickle.read_gpickle(graph_gzip)
 
             if self.intent_graph:
 
