@@ -130,7 +130,7 @@ class NluHermesMqtt(HermesClient):
                     Slot(
                         entity=e.entity,
                         slotName=e.entity,
-                        confidence=1,
+                        confidence=1.0,
                         value=e.value,
                         raw_value=e.raw_value,
                         range=SlotRange(
@@ -177,7 +177,7 @@ class NluHermesMqtt(HermesClient):
                     sessionId=query.sessionId,
                 )
         except Exception as e:
-            NluError(
+            yield NluError(
                 siteId=query.siteId,
                 sessionId=query.sessionId,
                 error=str(e),
