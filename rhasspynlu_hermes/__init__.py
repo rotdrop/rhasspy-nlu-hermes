@@ -1,7 +1,6 @@
 """Hermes MQTT server for Rhasspy NLU"""
 import asyncio
 import gzip
-import json
 import logging
 import typing
 from pathlib import Path
