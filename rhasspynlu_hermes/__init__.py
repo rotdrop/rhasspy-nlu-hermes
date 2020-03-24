@@ -213,7 +213,7 @@ class NluHermesMqtt(HermesClient):
             async for query_result in self.handle_query(message):
                 yield query_result
         elif isinstance(message, NluTrain):
-            siteId = siteId or "default"
+            assert siteId, "Missing siteId"
             async for train_result in self.handle_train(message, siteId=siteId):
                 yield train_result
         else:
