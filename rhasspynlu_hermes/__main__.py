@@ -20,11 +20,6 @@ def main():
     parser = argparse.ArgumentParser(prog="rhasspy-nlu-hermes")
     parser.add_argument("--intent-graph", help="Path to rhasspy intent graph JSON file")
     parser.add_argument(
-        "--write-graph",
-        action="store_true",
-        help="Write training graph to intent-graph path",
-    )
-    parser.add_argument(
         "--casing",
         choices=["upper", "lower", "ignore"],
         default="ignore",
@@ -61,7 +56,6 @@ def main():
         hermes = NluHermesMqtt(
             client,
             graph_path=args.intent_graph,
-            write_graph=args.write_graph,
             word_transform=get_word_transform(args.casing),
             replace_numbers=args.replace_numbers,
             language=args.language,

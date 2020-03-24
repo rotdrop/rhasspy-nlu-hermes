@@ -8,7 +8,7 @@ from pathlib import Path
 import networkx as nx
 import rhasspynlu
 from rhasspyhermes.base import Message
-from rhasspyhermes.client import HermesClient, TopicArgs
+from rhasspyhermes.client import GeneratorType, HermesClient, TopicArgs
 from rhasspyhermes.intent import Intent, Slot, SlotRange
 from rhasspyhermes.nlu import (
     NluError,
@@ -34,7 +34,6 @@ class NluHermesMqtt(HermesClient):
         client,
         intent_graph: typing.Optional[nx.DiGraph] = None,
         graph_path: typing.Optional[Path] = None,
-        write_graph: bool = False,
         default_entities: typing.Dict[str, typing.Iterable[Sentence]] = None,
         word_transform: typing.Optional[typing.Callable[[str], str]] = None,
         fuzzy: bool = True,
@@ -49,7 +48,6 @@ class NluHermesMqtt(HermesClient):
 
         self.graph_path = graph_path
         self.intent_graph = intent_graph
-        self.write_graph = write_graph
         self.default_entities = default_entities or {}
         self.word_transform = word_transform
         self.fuzzy = fuzzy
@@ -191,8 +189,6 @@ class NluHermesMqtt(HermesClient):
         typing.Union[typing.Tuple[NluTrainSuccess, TopicArgs], NluError]
     ]:
         """Transform sentences to intent graph"""
-        _LOGGER.debug("<- %s", train)
-
         try:
             _LOGGER.debug("Loading %s", train.graph_path)
             with gzip.GzipFile(train.graph_path, mode="rb") as graph_gzip:
@@ -200,7 +196,9 @@ class NluHermesMqtt(HermesClient):
 
             yield (NluTrainSuccess(id=train.id), {"siteId": siteId})
         except Exception as e:
-            yield NluError(siteId=siteId, error=str(e), context=train.id)
+            yield NluError(
+                siteId=siteId, sessionId=train.id, error=str(e), context=train.id
+            )
 
     # -------------------------------------------------------------------------
 
@@ -210,12 +208,14 @@ class NluHermesMqtt(HermesClient):
         siteId: typing.Optional[str] = None,
         sessionId: typing.Optional[str] = None,
         topic: typing.Optional[str] = None,
-    ):
+    ) -> GeneratorType:
         """Received message from MQTT broker."""
         if isinstance(message, NluQuery):
-            await self.publish_all(self.handle_query(message))
+            async for query_result in self.handle_query(message):
+                yield query_result
         elif isinstance(message, NluTrain):
             siteId = siteId or "default"
-            await self.publish_all(self.handle_train(message, siteId=siteId))
+            async for train_result in self.handle_train(message, siteId=siteId):
+                yield train_result
         else:
             _LOGGER.warning("Unexpected message: %s", message)
