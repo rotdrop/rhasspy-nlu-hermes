@@ -1,6 +1,5 @@
 """Hermes MQTT server for Rhasspy NLU"""
 import asyncio
-import gzip
 import logging
 import typing
 from pathlib import Path
@@ -74,8 +73,8 @@ class NluHermesMqtt(HermesClient):
             if not self.intent_graph and self.graph_path and self.graph_path.is_file():
                 # Load graph from file
                 _LOGGER.debug("Loading %s", self.graph_path)
-                with gzip.GzipFile(self.graph_path, mode="rb") as graph_gzip:
-                    self.intent_graph = nx.readwrite.gpickle.read_gpickle(graph_gzip)
+                with open(self.graph_path, mode="rb") as graph_file:
+                    self.intent_graph = rhasspynlu.gzip_pickle_to_graph(graph_file)
 
             if self.intent_graph:
 
@@ -191,8 +190,8 @@ class NluHermesMqtt(HermesClient):
         """Transform sentences to intent graph"""
         try:
             _LOGGER.debug("Loading %s", train.graph_path)
-            with gzip.GzipFile(train.graph_path, mode="rb") as graph_gzip:
-                self.intent_graph = nx.readwrite.gpickle.read_gpickle(graph_gzip)
+            with open(train.graph_path, mode="rb") as graph_file:
+                self.intent_graph = rhasspynlu.gzip_pickle_to_graph(graph_file)
 
             yield (NluTrainSuccess(id=train.id), {"siteId": siteId})
         except Exception as e:

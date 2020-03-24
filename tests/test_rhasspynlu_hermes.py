@@ -2,6 +2,7 @@
 import asyncio
 import json
 import logging
+import tempfile
 import unittest
 import uuid
 from pathlib import Path
@@ -35,6 +36,9 @@ class RhasspyNluHermesTestCase(unittest.TestCase):
         ini_text = """
         [SetLightColor]
         set the (bedroom | living room){name} light to (red | green | blue){color}
+
+        [GetTime]
+        what time is it
         """
 
         self.graph = intents_to_graph(parse_ini(ini_text))
@@ -115,6 +119,53 @@ class RhasspyNluHermesTestCase(unittest.TestCase):
 
     # -------------------------------------------------------------------------
 
+    async def async_test_intent_filter(self):
+        """Verify intent filter works."""
+        query_id = str(uuid.uuid4())
+        text = "what time is it"
+
+        query = NluQuery(
+            input=text, id=query_id, siteId=self.siteId, sessionId=self.sessionId
+        )
+
+        # Query should succeed
+        results = []
+        async for result in self.hermes.on_message(query):
+            results.append(result)
+
+        # Check results
+        self.assertEqual(len(results), 2)
+
+        # Ignore intentParsed
+        nlu_intent = results[1][0]
+        self.assertIsInstance(nlu_intent, NluIntent)
+        self.assertEqual(nlu_intent.intent.intentName, "GetTime")
+
+        # Add intent filter
+        query_id = str(uuid.uuid4())
+        query = NluQuery(
+            input=text,
+            id=query_id,
+            intentFilter=["SetLightColor"],
+            siteId=self.siteId,
+            sessionId=self.sessionId,
+        )
+
+        # Query should fail
+        results = []
+        async for result in self.hermes.on_message(query):
+            results.append(result)
+
+        # Check results
+        self.assertEqual(len(results), 1)
+        self.assertIsInstance(results[0], NluIntentNotRecognized)
+
+    def test_handle_intent_filter(self):
+        """Call async_test_intent_filter."""
+        _LOOP.run_until_complete(self.async_test_intent_filter())
+
+    # -------------------------------------------------------------------------
+
     async def async_test_not_recognized(self):
         """Verify invalid input leads to recognition failure."""
         query_id = str(uuid.uuid4())
@@ -150,27 +201,23 @@ class RhasspyNluHermesTestCase(unittest.TestCase):
     async def async_test_train_success(self):
         """Verify successful training."""
         train_id = str(uuid.uuid4())
-        train = NluTrain(id=train_id, graph_path=Path("fake-graph.pickle.gz"))
 
-        def fake_GzipFile(*args, **kwargs):
+        def fake_read_graph(*args, **kwargs):
             return MagicMock()
 
-        def fake_read_gpickle(*args, **kwargs):
-            return MagicMock()
+        # Create temporary file for "open"
+        with tempfile.NamedTemporaryFile(mode="wb+", suffix=".gz") as graph_file:
+            train = NluTrain(id=train_id, graph_path=graph_file.name)
 
-        # Ensure fake graph "loads"
-        with patch("rhasspynlu_hermes.gzip.GzipFile", new=fake_GzipFile):
-            with patch(
-                "rhasspynlu_hermes.nx.readwrite.gpickle.read_gpickle",
-                new=fake_read_gpickle,
-            ):
+            # Ensure fake graph "loads"
+            with patch("rhasspynlu.gzip_pickle_to_graph", new=fake_read_graph):
                 results = []
                 async for result in self.hermes.on_message(train, siteId=self.siteId):
                     results.append(result)
 
-        self.assertEqual(
-            results, [(NluTrainSuccess(id=train_id), {"siteId": self.siteId})]
-        )
+            self.assertEqual(
+                results, [(NluTrainSuccess(id=train_id), {"siteId": self.siteId})]
+            )
 
     def test_train_success(self):
         """Call async_test_train_success."""
