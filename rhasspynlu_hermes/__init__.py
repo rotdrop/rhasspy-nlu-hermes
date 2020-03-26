@@ -141,7 +141,7 @@ class NluHermesMqtt(HermesClient):
 
                 # intentParsed
                 yield NluIntentParsed(
-                    input=input_text,
+                    input=recognition.text,
                     id=query.id,
                     siteId=query.siteId,
                     sessionId=query.sessionId,
@@ -152,13 +152,13 @@ class NluHermesMqtt(HermesClient):
                 # intent
                 yield (
                     NluIntent(
-                        input=input_text,
+                        input=recognition.text,
                         id=query.id,
                         siteId=query.siteId,
                         sessionId=query.sessionId,
                         intent=intent,
                         slots=slots,
-                        asrTokens=input_text.split(),
+                        asrTokens=recognition.tokens,
                         rawAsrTokens=original_input.split(),
                         wakewordId=query.wakewordId,
                     ),
