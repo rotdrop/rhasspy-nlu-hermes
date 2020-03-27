@@ -1,25 +1,28 @@
-ARG BUILD_ARCH=amd64
-FROM ${BUILD_ARCH}/python:3.7-alpine as build
+FROM python:3.7-alpine as build
 
 RUN apk add --no-cache build-base swig
 
-ENV VENV=/usr/.venv
+ENV RHASSPY=/usr/lib/rhasspy
+ENV VENV=$RHASSPY/.venv
 
 RUN python3 -m venv $VENV
 RUN $VENV/bin/pip3 install --upgrade pip
+RUN $VENV/bin/pip3 install --upgrade wheel setuptools
 
-COPY requirements_rhasspy.txt requirements.txt /tmp/
-RUN $VENV/bin/pip3 install -r /tmp/requirements_rhasspy.txt
-RUN $VENV/bin/pip3 install -r /tmp/requirements.txt
+COPY Makefile requirements.txt $RHASSPY/
+COPY scripts $RHASSPY/scripts/
+RUN cd $RHASSPY && make
 
 # -----------------------------------------------------------------------------
 
-ARG BUILD_ARCH=amd64
-FROM ${BUILD_ARCH}/python:3.7-alpine
+FROM python:3.7-alpine
 
-WORKDIR /usr
-COPY --from=build /usr/.venv /usr/.venv/
+ENV RHASSPY=/usr/lib/rhasspy
+ENV VENV=$RHASSPY/.venv
 
-COPY **/*.py rhasspynlu_hermes/
+WORKDIR $RHASSPY
 
-ENTRYPOINT ["/usr/.venv/bin/python3", "-m", "rhasspynlu_hermes"]
+COPY --from=build $VENV $VENV
+COPY rhasspynlu_hermes/ $RHASSPY/rhasspynlu_hermes/
+
+ENTRYPOINT ["$VENV/bin/python3", "-m", "rhasspynlu_hermes"]
