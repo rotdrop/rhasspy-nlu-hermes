@@ -1,5 +1,4 @@
 """Hermes MQTT server for Rhasspy NLU"""
-import asyncio
 import logging
 import typing
 from pathlib import Path
@@ -39,9 +38,8 @@ class NluHermesMqtt(HermesClient):
         replace_numbers: bool = False,
         language: typing.Optional[str] = None,
         siteIds: typing.Optional[typing.List[str]] = None,
-        loop=None,
     ):
-        super().__init__("rhasspynlu_hermes", client, siteIds=siteIds, loop=loop)
+        super().__init__("rhasspynlu_hermes", client, siteIds=siteIds)
 
         self.subscribe(NluQuery, NluTrain)
 
@@ -52,9 +50,6 @@ class NluHermesMqtt(HermesClient):
         self.fuzzy = fuzzy
         self.replace_numbers = replace_numbers
         self.language = language
-
-        # Event loop
-        self.loop = loop or asyncio.get_event_loop()
 
     # -------------------------------------------------------------------------
 
