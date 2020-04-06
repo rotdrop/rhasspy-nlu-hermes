@@ -119,16 +119,16 @@ class NluHermesMqtt(HermesClient):
                 )
                 slots = [
                     Slot(
-                        entity=e.entity,
+                        entity=(e.source or e.entity),
                         slotName=e.entity,
                         confidence=1.0,
-                        value=e.value,
-                        raw_value=e.raw_value,
+                        value=e.value_dict,
+                        rawValue=e.raw_value,
                         range=SlotRange(
                             start=e.start,
                             end=e.end,
-                            raw_start=e.raw_start,
-                            raw_end=e.raw_end,
+                            rawStart=e.raw_start,
+                            rawEnd=e.raw_end,
                         ),
                     )
                     for e in recognition.entities
