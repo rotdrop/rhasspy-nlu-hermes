@@ -57,7 +57,7 @@ def main():
         replace_numbers=args.replace_numbers,
         language=args.language,
         fuzzy=(not args.no_fuzzy),
-        siteIds=args.siteId,
+        site_ids=args.site_id,
     )
 
     _LOGGER.debug("Connecting to %s:%s", args.host, args.port)
