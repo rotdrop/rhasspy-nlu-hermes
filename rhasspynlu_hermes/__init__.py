@@ -168,6 +168,7 @@ class NluHermesMqtt(HermesClient):
                     session_id=query.session_id,
                 )
         except Exception as e:
+            _LOGGER.exception("handle_query")
             yield NluError(
                 site_id=query.site_id,
                 session_id=query.session_id,
@@ -190,6 +191,7 @@ class NluHermesMqtt(HermesClient):
 
             yield (NluTrainSuccess(id=train.id), {"site_id": site_id})
         except Exception as e:
+            _LOGGER.exception("handle_train")
             yield NluError(
                 site_id=site_id, session_id=train.id, error=str(e), context=train.id
             )
