@@ -64,6 +64,8 @@ class NluHermesMqtt(HermesClient):
         ]
     ]:
         """Do intent recognition."""
+        original_input = query.input
+
         try:
             if not self.intent_graph and self.graph_path and self.graph_path.is_file():
                 # Load graph from file
@@ -78,8 +80,6 @@ class NluHermesMqtt(HermesClient):
                     if query.intent_filter:
                         return intent_name in query.intent_filter
                     return True
-
-                original_input = query.input
 
                 # Replace digits with words
                 if self.replace_numbers:
