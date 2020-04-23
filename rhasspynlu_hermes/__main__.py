@@ -18,9 +18,7 @@ _LOGGER = logging.getLogger("rhasspynlu_hermes")
 def main():
     """Main method."""
     parser = argparse.ArgumentParser(prog="rhasspy-nlu-hermes")
-    parser.add_argument(
-        "--intent-graph", help="Path to intent graph (gzipped pickle)"
-    )
+    parser.add_argument("--intent-graph", help="Path to intent graph (gzipped pickle)")
     parser.add_argument(
         "--casing",
         choices=["upper", "lower", "ignore"],
