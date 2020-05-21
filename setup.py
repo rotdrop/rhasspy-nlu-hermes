@@ -22,9 +22,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=requirements,
     entry_points={
-        "console_scripts": [
-            "rhasspy-nlu-hermes = rhasspynlu_hermes.__main__:main"
-        ]
+        "console_scripts": ["rhasspy-nlu-hermes = rhasspynlu_hermes.__main__:main"]
     },
     classifiers=[
         "Programming Language :: Python :: 3",
