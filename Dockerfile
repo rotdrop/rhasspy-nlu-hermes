@@ -1,28 +1,52 @@
-FROM python:3.7-alpine as build
+FROM ubuntu:eoan as build
 
-RUN apk add --no-cache build-base swig
+ENV LANG C.UTF-8
 
-ENV RHASSPY=/usr/lib/rhasspy
-ENV VENV=$RHASSPY/.venv
+RUN apt-get update && \
+    apt-get install --no-install-recommends --yes \
+        python3 python3-dev python3-setuptools python3-pip python3-venv \
+        build-essential
 
-RUN python3 -m venv $VENV
-RUN $VENV/bin/pip3 install --upgrade pip
-RUN $VENV/bin/pip3 install --upgrade wheel setuptools
+ENV APP_DIR=/usr/lib/rhasspy-nlu-hermes
+ENV BUILD_DIR=/build
 
-COPY Makefile requirements.txt $RHASSPY/
-COPY scripts $RHASSPY/scripts/
-RUN cd $RHASSPY && make
+# Directory of prebuilt tools
+COPY download/ ${BUILD_DIR}/download/
+
+# Copy source
+COPY rhasspynlu_hermes/ ${BUILD_DIR}/rhasspynlu_hermes/
+
+# Autoconf
+COPY m4/ ${BUILD_DIR}/m4/
+COPY configure config.sub config.guess \
+     install-sh missing aclocal.m4 \
+     Makefile.in setup.py requirements.txt rhasspy-nlu-hermes.in \
+     ${BUILD_DIR}/
+
+RUN cd ${BUILD_DIR} && \
+    ./configure --prefix=${APP_DIR}
+
+COPY VERSION README.md LICENSE ${BUILD_DIR}/
+
+RUN cd ${BUILD_DIR} && \
+    make && \
+    make install
+
+# Strip binaries and shared libraries
+RUN (find ${APP_DIR} -type f \( -name '*.so*' -or -executable \) -print0 | xargs -0 strip --strip-unneeded -- 2>/dev/null) || true
 
 # -----------------------------------------------------------------------------
 
-FROM python:3.7-alpine
+FROM ubuntu:eoan as run
 
-ENV RHASSPY=/usr/lib/rhasspy
-ENV VENV=$RHASSPY/.venv
+ENV LANG C.UTF-8
 
-WORKDIR $RHASSPY
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends \
+        python3 libpython3.7
 
-COPY --from=build $VENV $VENV
-COPY rhasspynlu_hermes/ $RHASSPY/rhasspynlu_hermes/
+ENV APP_DIR=/usr/lib/rhasspy-nlu-hermes
+COPY --from=build ${APP_DIR}/ ${APP_DIR}/
+COPY --from=build /build/rhasspy-nlu-hermes /usr/bin/
 
-ENTRYPOINT ["$VENV/bin/python3", "-m", "rhasspynlu_hermes"]
+ENTRYPOINT ["bash", "/usr/bin/rhasspy-nlu-hermes"]

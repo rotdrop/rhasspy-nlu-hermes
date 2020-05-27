@@ -9,3 +9,8 @@ dist/
 .vscode/
 pyinstaller/
 download/
+
+/autom4te.cache/
+/Makefile
+/rhasspy-nlu-hermes
+/config.status
