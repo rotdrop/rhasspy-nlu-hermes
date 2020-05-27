@@ -35,10 +35,6 @@ FROM balenalib/raspberry-pi-debian-python:3.7-buster-build as build-armv6
 
 ENV LANG C.UTF-8
 
-RUN install_packages \
-        python3 python3-dev python3-setuptools python3-pip python3-venv \
-        build-essential
-
 # -----------------------------------------------------------------------------
 
 ARG TARGETARCH
