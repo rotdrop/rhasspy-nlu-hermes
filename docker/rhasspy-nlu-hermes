@@ -1,7 +1,22 @@
 #!/usr/bin/env bash
-if [[ -z "${rhasspynlu_hermes_dir}" ]]; then
-    this_dir="$( cd "$( dirname "$0" )" && pwd )"
-    rhasspynlu_hermes_dir="${this_dir}/../lib/rhasspynlu_hermes"
+
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+
+# Directory of *this* script
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+if [[ -z "${XDG_CONFIG_HOME}" ]]; then
+    profile_dir="${HOME}/.config/rhasspy/profiles"
+else
+    profile_dir="${XDG_CONFIG_HOME}/rhasspy/profiles"
 fi
 
-python3 "${rhasspynlu_hermes_dir}" "$@"
+version="$(cat VERSION)"
+
+docker run -it \
+       --network host \
+       -v "${profile_dir}":"${profile_dir}" \
+       -v /etc/localtime:/etc/localtime \
+       "rhasspy/rhasspy-nlu-hermes:${version}" \
+       "$@"
