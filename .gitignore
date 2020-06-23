@@ -14,3 +14,5 @@ download/
 /Makefile
 /rhasspy-nlu-hermes
 /config.status
+
+*.log

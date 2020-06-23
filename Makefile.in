@@ -43,6 +43,8 @@ pkgincludedir = $(includedir)/@PACKAGE_NAME@
 # Dependencies
 # -----------------------------------------------------------------------------
 
+IN_PLACE = @IN_PLACE@
+
 BUILD_DIR ?= $(srcdir)/build
 DOWNLOAD_DIR ?= $(srcdir)/download
 DO_DOWNLOAD ?= curl -sSfL -o
@@ -82,7 +84,12 @@ endif # VIRTUALENV == yes
 install-dependencies:
 
 install-service:
+ifeq ($(IN_PLACE),yes)
+	"$(INSTALL_PYTHON)" -m pip install $(PIP_INSTALL_ARGS) -r "$(srcdir)/requirements.txt"
+	"$(INSTALL_PYTHON)" -m pip install $(PIP_INSTALL_ARGS) -r "$(srcdir)/requirements_dev.txt" || true
+else # IN_PLACE == yes
 	"$(INSTALL_PYTHON)" -m pip install $(PIP_INSTALL_ARGS) "$(srcdir)"
+endif # IN_PLACE == yes
 	chmod +x "$(srcdir)/rhasspy-nlu-hermes"
 
 # -----------------------------------------------------------------------------
