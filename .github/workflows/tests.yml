@@ -47,6 +47,7 @@ jobs:
   publish:
     needs: [tagging]
     runs-on: ubuntu-18.04
+    if: needs.tagging.outputs.new_tag != ''
     steps:
       - name: Checkout code
         uses: actions/checkout@v1
