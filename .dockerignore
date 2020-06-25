@@ -8,7 +8,9 @@
 !aclocal.m4
 !requirements.txt
 !Makefile.in
+!setup.py
 !scripts/create-venv.sh
 
+!rhasspy-nlu-hermes.in
 !bin/rhasspy-nlu-hermes
 !rhasspynlu_hermes/*.py

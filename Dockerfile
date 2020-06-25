@@ -14,11 +14,11 @@ RUN apt-get update && \
 ENV APP_DIR=/usr/lib/rhasspy-nlu-hermes
 
 # Autoconf
-COPY m4/ ${BUILD_DIR}/m4/
+COPY m4/ ${APP_DIR}/m4/
 COPY configure config.sub config.guess \
      install-sh missing aclocal.m4 \
-     Makefile.in setup.py requirements.txt \
-     ${BUILD_DIR}/
+     Makefile.in setup.py requirements.txt rhasspy-nlu-hermes.in \
+     ${APP_DIR}/
 
 COPY scripts/create-venv.sh ${APP_DIR}/scripts/
 
