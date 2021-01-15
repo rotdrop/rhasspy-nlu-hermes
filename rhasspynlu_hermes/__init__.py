@@ -4,7 +4,6 @@ import typing
 from pathlib import Path
 
 import networkx as nx
-import rhasspynlu
 from rhasspyhermes.base import Message
 from rhasspyhermes.client import GeneratorType, HermesClient, TopicArgs
 from rhasspyhermes.intent import Intent, Slot, SlotRange
@@ -17,6 +16,8 @@ from rhasspyhermes.nlu import (
     NluTrain,
     NluTrainSuccess,
 )
+
+import rhasspynlu
 from rhasspynlu import Sentence, recognize
 
 _LOGGER = logging.getLogger("rhasspynlu_hermes")
@@ -37,6 +38,9 @@ class NluHermesMqtt(HermesClient):
         fuzzy: bool = True,
         replace_numbers: bool = False,
         language: typing.Optional[str] = None,
+        extra_converters: typing.Optional[
+            typing.Dict[str, typing.Callable[..., typing.Any]]
+        ] = None,
         site_ids: typing.Optional[typing.List[str]] = None,
     ):
         super().__init__("rhasspynlu_hermes", client, site_ids=site_ids)
@@ -50,6 +54,7 @@ class NluHermesMqtt(HermesClient):
         self.fuzzy = fuzzy
         self.replace_numbers = replace_numbers
         self.language = language
+        self.extra_converters = extra_converters
 
     # -------------------------------------------------------------------------
 
@@ -102,6 +107,7 @@ class NluHermesMqtt(HermesClient):
                     intent_filter=intent_filter,
                     word_transform=self.word_transform,
                     fuzzy=self.fuzzy,
+                    extra_converters=self.extra_converters,
                 )
             else:
                 _LOGGER.error("No intent graph loaded")

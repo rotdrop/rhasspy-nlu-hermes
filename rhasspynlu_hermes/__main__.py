@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 import rhasspyhermes.cli as hermes_cli
 
 from . import NluHermesMqtt
+from .utils import load_converters
 
 _LOGGER = logging.getLogger("rhasspynlu_hermes")
 
@@ -36,6 +37,10 @@ def main():
     parser.add_argument(
         "--language", help="Language/locale used for number replacement (default: en)"
     )
+    parser.add_argument(
+        "--converters-dir",
+        help="Path to custom converter directory with executable scripts",
+    )
 
     hermes_cli.add_hermes_args(parser)
 
@@ -48,6 +53,11 @@ def main():
     if args.intent_graph:
         args.intent_graph = Path(args.intent_graph)
 
+    extra_converters = None
+    if args.converters_dir:
+        args.converters_dir = Path(args.converters_dir)
+        extra_converters = load_converters(args.converters_dir)
+
     # Listen for messages
     client = mqtt.Client()
     hermes = NluHermesMqtt(
@@ -57,6 +67,7 @@ def main():
         replace_numbers=args.replace_numbers,
         language=args.language,
         fuzzy=(not args.no_fuzzy),
+        extra_converters=extra_converters,
         site_ids=args.site_id,
     )
 
