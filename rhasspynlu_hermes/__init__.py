@@ -4,6 +4,7 @@ import typing
 from pathlib import Path
 
 import networkx as nx
+import rhasspynlu
 from rhasspyhermes.base import Message
 from rhasspyhermes.client import GeneratorType, HermesClient, TopicArgs
 from rhasspyhermes.intent import Intent, Slot, SlotRange
@@ -16,8 +17,6 @@ from rhasspyhermes.nlu import (
     NluTrain,
     NluTrainSuccess,
 )
-
-import rhasspynlu
 from rhasspynlu import Sentence, recognize
 
 _LOGGER = logging.getLogger("rhasspynlu_hermes")
