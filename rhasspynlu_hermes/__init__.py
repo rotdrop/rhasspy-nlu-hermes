@@ -4,6 +4,8 @@ import typing
 from pathlib import Path
 
 import networkx as nx
+
+import rhasspynlu
 from rhasspyhermes.base import Message
 from rhasspyhermes.client import GeneratorType, HermesClient, TopicArgs
 from rhasspyhermes.intent import Intent, Slot, SlotRange
@@ -16,8 +18,6 @@ from rhasspyhermes.nlu import (
     NluTrain,
     NluTrainSuccess,
 )
-
-import rhasspynlu
 from rhasspynlu import Sentence, recognize
 
 _LOGGER = logging.getLogger("rhasspynlu_hermes")
@@ -163,6 +163,7 @@ class NluHermesMqtt(HermesClient):
                         raw_input=original_input,
                         wakeword_id=query.wakeword_id,
                         lang=query.lang,
+                        custom_data=query.custom_data,
                     ),
                     {"intent_name": recognition.intent.name},
                 )
@@ -173,6 +174,7 @@ class NluHermesMqtt(HermesClient):
                     id=query.id,
                     site_id=query.site_id,
                     session_id=query.session_id,
+                    custom_data=query.custom_data,
                 )
         except Exception as e:
             _LOGGER.exception("handle_query")
