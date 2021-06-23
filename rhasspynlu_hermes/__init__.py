@@ -4,7 +4,6 @@ import typing
 from pathlib import Path
 
 import networkx as nx
-
 import rhasspynlu
 from rhasspyhermes.base import Message
 from rhasspyhermes.client import GeneratorType, HermesClient, TopicArgs
