@@ -41,6 +41,9 @@ def main():
         "--converters-dir",
         help="Path to custom converter directory with executable scripts",
     )
+    parser.add_argument(
+        "--failure-token", help="Always fail to recognize if token is present"
+    )
     parser.add_argument("--lang", help="Set lang in hotword detected message")
 
     hermes_cli.add_hermes_args(parser)
@@ -69,6 +72,7 @@ def main():
         language=args.language,
         fuzzy=(not args.no_fuzzy),
         extra_converters=extra_converters,
+        failure_token=args.failure_token,
         site_ids=args.site_id,
         lang=args.lang,
     )

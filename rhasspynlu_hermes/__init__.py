@@ -18,6 +18,7 @@ from rhasspyhermes.nlu import (
     NluTrainSuccess,
 )
 from rhasspynlu import Sentence, recognize
+from rhasspynlu.intent import Recognition
 
 _LOGGER = logging.getLogger("rhasspynlu_hermes")
 
@@ -40,6 +41,7 @@ class NluHermesMqtt(HermesClient):
         extra_converters: typing.Optional[
             typing.Dict[str, typing.Callable[..., typing.Any]]
         ] = None,
+        failure_token: typing.Optional[str] = None,
         site_ids: typing.Optional[typing.List[str]] = None,
         lang: typing.Optional[str] = None,
     ):
@@ -55,6 +57,7 @@ class NluHermesMqtt(HermesClient):
         self.replace_numbers = replace_numbers
         self.language = language
         self.extra_converters = extra_converters
+        self.failure_token = failure_token
         self.lang = lang
 
     # -------------------------------------------------------------------------
@@ -101,20 +104,24 @@ class NluHermesMqtt(HermesClient):
                 if self.word_transform:
                     input_text = self.word_transform(input_text)
 
-                # Pass in raw query input so raw values will be correct
-                recognitions = recognize(
-                    query.input,
-                    self.intent_graph,
-                    intent_filter=intent_filter,
-                    word_transform=self.word_transform,
-                    fuzzy=self.fuzzy,
-                    extra_converters=self.extra_converters,
-                )
+                if self.failure_token and (self.failure_token in query.input.split()):
+                    # Failure token was found in input
+                    recognitions = []
+                else:
+                    # Pass in raw query input so raw values will be correct
+                    recognitions = recognize(
+                        query.input,
+                        self.intent_graph,
+                        intent_filter=intent_filter,
+                        word_transform=self.word_transform,
+                        fuzzy=self.fuzzy,
+                        extra_converters=self.extra_converters,
+                    )
             else:
                 _LOGGER.error("No intent graph loaded")
                 recognitions = []
 
-            if recognitions:
+            if NluHermesMqtt.is_success(recognitions):
                 # Use first recognition only.
                 recognition = recognitions[0]
                 assert recognition is not None
@@ -197,6 +204,21 @@ class NluHermesMqtt(HermesClient):
                 error=str(e),
                 context=original_input,
             )
+
+    # -------------------------------------------------------------------------
+
+    @staticmethod
+    def is_success(recognitions: typing.List[Recognition]) -> bool:
+        """True if recognition succeeded"""
+        if not recognitions:
+            return False
+
+        recognition = recognitions[0]
+
+        if (recognition is None) or (recognition.intent is None):
+            return False
+
+        return True
 
     # -------------------------------------------------------------------------
 
